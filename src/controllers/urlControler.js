@@ -48,6 +48,7 @@ export async function accessUrl(req, res) {
 
 export async function deleteUrl(req, res) {
     try {
+        const token = res.locals.token;
         const id = req.params.id;
         const {rows: validUrl} = await connection.query(`
             SELECT sessions.token

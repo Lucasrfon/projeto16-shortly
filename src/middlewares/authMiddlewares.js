@@ -1,4 +1,5 @@
 import joi from "joi";
+import { connection } from "../dbStrategy/pg.js";
 
 export function validateNewUser(req, res, next) {
     const newUserSchema = joi.object({
@@ -34,4 +35,22 @@ export function validateUser(req, res, next) {
     }
     
     next();
+}
+
+export async function validateToken(req, res, next) {
+    try {
+        const { authorization } = req.headers;
+        const token = authorization?.replace('Bearer ', '');
+        const {rows: session} = await connection.query('SELECT * FROM sessions WHERE token = $1',
+        [token]);
+    
+        if (!session[0]) {
+            return res.status(401).send();
+        }
+
+        res.locals.token = token;
+        next();     
+    } catch (error) {
+        res.status(417).send(error);
+    }
 }
