@@ -37,6 +37,28 @@ export function validateUser(req, res, next) {
     next();
 }
 
+export function validateUrl(req, res, next) {
+    const urlPattern = new RegExp('^(https?:\\/\\/)?'+ // validate protocol
+	    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|'+ // validate domain name
+	    '((\\d{1,3}\\.){3}\\d{1,3}))'+ // validate OR ip (v4) address
+	    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // validate port and path
+	    '(\\?[;&a-z\\d%_.~+=-]*)?'+ // validate query string
+	    '(\\#[-a-z\\d_]*)?$','i');
+    const urlSchema = joi.object({
+        url: joi.string().pattern(urlPattern).required()
+    });
+    const url = req.body;
+    const validation = urlSchema.validate(url, {abortEarly: false});
+
+    if(validation.error) {
+        const errors = validation.error.details.map(each => each.message);
+
+        return res.status(422).send(errors);
+    }
+    
+    next();
+}
+
 export async function validateToken(req, res, next) {
     try {
         const { authorization } = req.headers;
@@ -49,6 +71,7 @@ export async function validateToken(req, res, next) {
         }
 
         res.locals.token = token;
+        res.locals.user = session[0].user_id
         next();     
     } catch (error) {
         res.status(417).send(error);

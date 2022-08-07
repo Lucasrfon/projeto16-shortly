@@ -1,8 +1,18 @@
 import { connection } from "../dbStrategy/pg.js";
+import { nanoid } from 'nanoid';
 
 export async function creatShortUrl(req, res) {
     try {
+        const userId = res.locals.user;
         const { url } = req.body;
+        const shortUrl = nanoid();
+
+        await connection.query(`
+            INSERT INTO urls (original_url, short_url, user_id)
+            VALUES ('${url}', '${shortUrl}', ${userId})
+        `)
+
+        res.status(201).send({shortUrl})
     } catch (error) {
         res.status(500).send(error)
     }
