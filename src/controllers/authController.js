@@ -1,4 +1,5 @@
 import bcrypt from 'bcrypt';
+import { v4 as uuid } from 'uuid';
 import { connection } from "../dbStrategy/pg.js";
 
 export async function signUp(req, res) {
@@ -26,12 +27,17 @@ export async function signIn(req, res) {
         const {email, password} = req.body;
         const {rows: user} = await connection.query(`SELECT * FROM users WHERE email = '${email}'`);
         const validPassword = user[0] ? bcrypt.compareSync(password, user[0].password) : null;
+        const token = uuid();
 
         if(!user[0] || !validPassword) {
             return res.status(401).send('Email e/ou senha inválidos')
         }
+
+        await connection.query(`
+            INSERT INTO sessions (user_id, token) VALUES (${user[0].id}, '${token}')
+        `);
         
-        res.status(200).send('token')
+        res.status(200).send(token)
     } catch (error) {
         res.status(500).send(error)
     }

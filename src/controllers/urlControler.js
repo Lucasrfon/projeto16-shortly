@@ -1,5 +1,13 @@
 import { connection } from "../dbStrategy/pg.js";
 
+export async function creatShortUrl(req, res) {
+    try {
+        const { url } = req.body;
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
 export async function getUrl(req, res) {
     try {
         const id = req.params.id;
@@ -28,9 +36,41 @@ export async function accessUrl(req, res) {
     
         const visits = validUrl[0].visit_count + 1;
     
-        await connection.query(`UPDATE urls SET visit_count = ${visits} WHERE short_url = '${shortUrl}'`);
+        await connection.query(`
+            UPDATE urls SET visit_count = ${visits} WHERE short_url = '${shortUrl}'
+        `);
     
         res.redirect(validUrl[0].original_url)
+    } catch (error) {
+        res.status(500).send(error)
+    }
+}
+
+export async function deleteUrl(req, res) {
+    try {
+        const id = req.params.id;
+        const {rows: validUrl} = await connection.query(`
+            SELECT sessions.token
+            FROM users
+            JOIN sessions
+            ON users.id = sessions.user_id
+            JOIN urls
+            ON users.id = urls.user_id
+            WHERE urls.id = $1        
+        `, [id]);
+        const urlOwner = validUrl.map(each => each.token);
+        
+        if(!validUrl[0]) {
+            return res.status(404).send()
+        }
+
+        if(!urlOwner.includes(token)) {
+            return res.status(401).send()
+        }
+
+        await connection.query('DELETE FROM urls WHERE id = $1', [id])
+
+        res.status(204).send()
     } catch (error) {
         res.status(500).send(error)
     }
