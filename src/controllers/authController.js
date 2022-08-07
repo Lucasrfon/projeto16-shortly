@@ -23,6 +23,14 @@ export async function signUp(req, res) {
 
 export async function signIn(req, res) {
     try {
+        const {email, password} = req.body;
+        const {rows: user} = await connection.query(`SELECT * FROM users WHERE email = '${email}'`);
+        const validPassword = user[0] ? bcrypt.compareSync(password, user[0].password) : null;
+
+        if(!user[0] || !validPassword) {
+            return res.status(401).send('Email e/ou senha inválidos')
+        }
+        
         res.status(200).send('token')
     } catch (error) {
         res.status(500).send(error)

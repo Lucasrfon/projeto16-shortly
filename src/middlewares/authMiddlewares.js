@@ -21,7 +21,7 @@ export function validateNewUser(req, res, next) {
 
 export function validateUser(req, res, next) {
     const userSchema = joi.object({
-        name: joi.string().pattern(/^[a-zA-Z]*$/).required(),
+        email: joi.string().email().required(),
         password: joi.string().required()
     });
     const user = req.body;
