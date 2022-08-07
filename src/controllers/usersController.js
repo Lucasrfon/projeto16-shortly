@@ -22,19 +22,37 @@ export async function getUserUrls(req, res) {
     try {
         const userId = res.locals.user;
         const {rows: userUrls} = await connection.query(`
-            SELECT users.id, users.name, SUM(visit_count) AS "visitCount"
+            SELECT users.id AS user_id, users.name, urls.id, urls.short_url AS shortUrl, original_url AS url, urls.visit_count
             FROM users
             JOIN urls
             ON users.id = urls.user_id
             WHERE users.id = ${userId}
-            GROUP BY users.id
         `)
 
         if(!userUrls[0]) {
             return res.status(404).send()
         }
 
-        res.status(200).send(userUrls[0])
+        let visitCount = 0;
+        const shortenedUrls = [];
+        for(let i = 0; i < userUrls.length; i++) {
+            visitCount += userUrls[i].visit_count;
+            shortenedUrls.push({
+                id: userUrls[i].id,
+                shorturl: userUrls[i].shorturl,
+                url: userUrls[i].url,
+                visit_count: userUrls[i].visit_count
+            })
+        }
+        
+        const formatUserUrls = {
+            id: userUrls[0].user_id,
+            name: userUrls[0].name,
+            visitCount,
+            shortenedUrls
+        }
+
+        res.status(200).send(formatUserUrls)
     } catch (error) {
         res.status(500).send(error)
     }
