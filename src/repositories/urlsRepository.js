@@ -1,4 +1,4 @@
-import { connection } from "../dbStrategy/pg.js";
+import connection from "../dbStrategy/pg.js";
 
 export async function insertUrl(url, shortUrl, userId) {
     return connection.query(`

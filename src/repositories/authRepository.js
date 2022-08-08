@@ -1,4 +1,4 @@
-import { connection } from "../dbStrategy/pg.js";
+import connection from "../dbStrategy/pg.js";
 
 export async function findEmail(email) {
     return connection.query(`SELECT * FROM users WHERE email = $1`, [email]);
