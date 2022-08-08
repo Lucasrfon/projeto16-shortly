@@ -5,7 +5,7 @@ import { connection } from "../dbStrategy/pg.js";
 export async function signUp(req, res) {
     try {
         const {name, email, password} = req.body;
-        const unique = await connection.query(`SELECT * FROM users WHERE email = '${email}'`);
+        const unique = await connection.query(`SELECT * FROM users WHERE email = $1`, [email]);
         const encryptedPassword = bcrypt.hashSync(password, 5);
 
         if(unique.rowCount !== 0) {
@@ -13,8 +13,9 @@ export async function signUp(req, res) {
         }
 
         await connection.query(`
-            INSERT INTO users (name, email, password) VALUES ('${name}', '${email}', '${encryptedPassword}')
-        `);
+            INSERT INTO users (name, email, password)
+            VALUES ($1, $2, $3)
+        `, [name, email, encryptedPassword]);
         
         res.status(201).send()
     } catch (error) {
@@ -25,7 +26,7 @@ export async function signUp(req, res) {
 export async function signIn(req, res) {
     try {
         const {email, password} = req.body;
-        const {rows: user} = await connection.query(`SELECT * FROM users WHERE email = '${email}'`);
+        const {rows: user} = await connection.query(`SELECT * FROM users WHERE email = $1`, [email]);
         const validPassword = user[0] ? bcrypt.compareSync(password, user[0].password) : null;
         const token = uuid();
 
@@ -34,8 +35,8 @@ export async function signIn(req, res) {
         }
 
         await connection.query(`
-            INSERT INTO sessions (user_id, token) VALUES (${user[0].id}, '${token}')
-        `);
+            INSERT INTO sessions (user_id, token) VALUES ($1, $2)
+        `, [user[0].id, token]);
         
         res.status(200).send(token)
     } catch (error) {

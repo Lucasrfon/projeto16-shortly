@@ -3,7 +3,7 @@ import { connection } from "../dbStrategy/pg.js";
 
 export function validateNewUser(req, res, next) {
     const newUserSchema = joi.object({
-        name: joi.string().pattern(/^[a-zA-Z]*$/).required(),
+        name: joi.string().pattern(/^[A-Za-zÀ-ÖØ-öø-ÿ]*$/).required(),
         email: joi.string().email().required(),
         password: joi.string().required(),
         confirmPassword: joi.string().required().valid(joi.ref('password'))
