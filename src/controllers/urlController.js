@@ -9,8 +9,8 @@ export async function creatShortUrl(req, res) {
 
         await connection.query(`
             INSERT INTO urls (original_url, short_url, user_id)
-            VALUES ('${url}', '${shortUrl}', ${userId})
-        `)
+            VALUES ($1, $2, $3)
+        `, [url, shortUrl, userId])
 
         res.status(201).send({shortUrl})
     } catch (error) {
@@ -38,7 +38,9 @@ export async function getUrl(req, res) {
 export async function accessUrl(req, res) {
     try {
         const shortUrl = req.params.shortUrl;
-        const {rows: validUrl} = await connection.query('SELECT * FROM urls WHERE short_url = $1', [shortUrl]);
+        const {rows: validUrl} = await connection.query(`
+            SELECT * FROM urls WHERE short_url = $1
+        `, [shortUrl]);
     
         if(!validUrl[0]) {
             return res.status(404).send()
@@ -47,8 +49,8 @@ export async function accessUrl(req, res) {
         const visits = validUrl[0].visit_count + 1;
     
         await connection.query(`
-            UPDATE urls SET visit_count = ${visits} WHERE short_url = '${shortUrl}'
-        `);
+            UPDATE urls SET visit_count = $1 WHERE short_url = $2
+        `, [visits, shortUrl]);
     
         res.redirect(validUrl[0].original_url)
     } catch (error) {
