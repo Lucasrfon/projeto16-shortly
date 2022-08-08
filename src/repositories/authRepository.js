@@ -16,3 +16,7 @@ export async function insertNewSession(id, token) {
         INSERT INTO sessions (user_id, token) VALUES ($1, $2)
     `, [id, token]);
 }
+
+export async function findSession(token) {
+    return connection.query('SELECT * FROM sessions WHERE token = $1', [token])
+}

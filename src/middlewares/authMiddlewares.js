@@ -1,5 +1,5 @@
 import joi from "joi";
-import { connection } from "../dbStrategy/pg.js";
+import { findSession } from "../repositories/authRepository.js";
 
 export function validateNewUser(req, res, next) {
     const newUserSchema = joi.object({
@@ -63,8 +63,7 @@ export async function validateToken(req, res, next) {
     try {
         const { authorization } = req.headers;
         const token = authorization?.replace('Bearer ', '');
-        const {rows: session} = await connection.query('SELECT * FROM sessions WHERE token = $1',
-        [token]);
+        const {rows: session} = await findSession(token);
     
         if (!session[0]) {
             return res.status(401).send();
