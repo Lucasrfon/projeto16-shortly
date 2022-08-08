@@ -26,8 +26,8 @@ export async function getUserUrls(req, res) {
             FROM users
             JOIN urls
             ON users.id = urls.user_id
-            WHERE users.id = ${userId}
-        `)
+            WHERE users.id = $1
+        `, [userId])
 
         if(!userUrls[0]) {
             return res.status(404).send()
